@@ -67,52 +67,96 @@ const NPGalleryPicker = () => {
 
   const handleSelectChange = (event: any) => {
     setSelectedPark(event.target.value);
-    setSelectedParkAttr(event.target.value);
-    console.log(event.target);
+    const parkAttr = parks.filter((park) => {
+      console.log(selectedPark);
+      if (park[0] === selectedPark) {
+        return park[1];
+      }
+    });
+    setSelectedParkAttr(parkAttr[0][1]);
+    axios
+      .post(SEARCH_API, {
+        search: {
+          SearchID: null,
+          TypeFilter: ['Album'],
+          Operand: {
+            LeftOperand: {
+              Term: 'UnitCode',
+              Attribute: selectedParkAttr,
+              MatchType: 'Exact'
+            },
+            RightOperand: {
+              Term: 'keywords',
+              Attribute: values.keyword,
+              ContainsType: 'All Words'
+            },
+            Operator: 'AND'
+          },
+          ActionFilter: 'Search',
+          CacheResults: false,
+          Save: true,
+          RoleFilter: null,
+          SubmitterFilter: null,
+          StatusFilter: 'Active',
+          SortTerms: [
+            {
+              Term: 'SubmittedDateTime',
+              Ascending: false
+            }
+          ],
+          PageSize: 50,
+          ResultTerms: ['Title', 'Description'],
+          CurrentPage: 1,
+          PageCount: 0
+        }
+      })
+      .then((res) => {
+        setAssets(res.data.Results);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
   };
 
   const handleInputChange = (keyword: keyof State) => (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
     setValues({ ...values, [keyword]: event.target.value });
-    let bodyFormData: any = new FormData();
-    bodyFormData.append('search', {
-      SearchID: null,
-      TypeFilter: ['Album'],
-      Operand: {
-        LeftOperand: {
-          Term: 'UnitCode',
-          Attribute: selectedParkAttr,
-          MatchType: 'Exact'
-        },
-        RightOperand: {
-          Term: 'keywords',
-          Attribute: values.keyword,
-          ContainsType: 'All Words'
-        },
-        Operator: 'AND'
-      },
-      ActionFilter: 'Search',
-      CacheResults: false,
-      Save: true,
-      RoleFilter: null,
-      SubmitterFilter: null,
-      StatusFilter: 'Active',
-      SortTerms: [
-        {
-          Term: 'SubmittedDateTime',
-          Ascending: false
-        }
-      ],
-      PageSize: 50,
-      ResultTerms: ['Title', 'Description'],
-      CurrentPage: 1,
-      PageCount: 0
-    });
     axios
       .post(SEARCH_API, {
-        data: bodyFormData,
-        config: { headers: { 'Content-Type': 'multipart/form-data' } }
+        search: {
+          SearchID: null,
+          TypeFilter: ['Album'],
+          Operand: {
+            LeftOperand: {
+              Term: 'UnitCode',
+              Attribute: selectedParkAttr,
+              MatchType: 'Exact'
+            },
+            RightOperand: {
+              Term: 'keywords',
+              Attribute: values.keyword,
+              ContainsType: 'All Words'
+            },
+            Operator: 'AND'
+          },
+          ActionFilter: 'Search',
+          CacheResults: false,
+          Save: true,
+          RoleFilter: null,
+          SubmitterFilter: null,
+          StatusFilter: 'Active',
+          SortTerms: [
+            {
+              Term: 'SubmittedDateTime',
+              Ascending: false
+            }
+          ],
+          PageSize: 50,
+          ResultTerms: ['Title', 'Description'],
+          CurrentPage: 1,
+          PageCount: 0
+        }
       })
       .then((res) => {
         setAssets(res.data.Results);
